@@ -10,6 +10,7 @@ rm(list = ls())
 
 ##############readme################################
 ##plot figure 1: mean ISA and area ratio across U.S.
+###plot s1,s2,s5
 ###################################################
 
 
@@ -19,19 +20,22 @@ rm(list = ls())
   seasons= c("annual","spring","summer","fall","winter")
   seasons1= c("spring","summer","fall","winter")
   us_states <- states(cb = TRUE, resolution = "20m") %>%  shift_geometry()
+  
   parking=st_transform(st_read(dsn="../input/raw_shapefile",layer="parkinglots"),crs=st_crs(us_states))
   parking=parking[-which(parking$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
+  
   boundary=st_transform(st_read(dsn="../input/raw_shapefile",layer="boundary"),crs=st_crs(us_states))
   boundary=boundary[-which(boundary$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
 }
 
 #################################################
-####input data from GEE
+#input data from GEE
+
 {
     area=read.csv("../input/Parking_Lot_LULC_area_sum.csv")
     area=area[-which(area$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
     ratio=area$parking/area$boundary*100
-    
+
     input0=read.csv("../input/parking_project_gee/Parking_Lot_city_mean_2024_buffer_2.csv")
     input0[,2:16]=input0[,2:16]-273.15
     input0 = input0[-which(input0$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
@@ -48,6 +52,86 @@ rm(list = ls())
     input1[c((input1 %>% arrange(desc(ratio)))$id[95:100]),]$ratio
     input1[c((input1 %>% arrange(desc(ratio)))$id[95:100]),]$city
   }
+
+#figure: parking areas/percent
+{
+library(dplyr)
+library(stringr)
+library(ggplot2)
+
+# Convert city-state formatting: remove dash, capitalize both words
+area <- area %>%
+  mutate(
+    # separate city and state based on the final "-ST"
+    city_part  = sub("-[A-Za-z]{2}$", "", city),   # everything before -ST
+    state_part = sub(".*-", "", city),             # last two letters after -
+    
+    # force full city to lower case first
+    city_part  = tolower(city_part),
+    
+    # capitalize ONLY the first character of the entire city string
+    city_part  = paste0(
+      toupper(substr(city_part, 1, 1)),
+      substr(city_part, 2, nchar(city_part))
+    ),
+    
+    # state abbreviation: always two uppercase letters
+    state_part = toupper(state_part),
+    
+    # final label "City name, ST"
+    city_clean = paste0(city_part, ", ", state_part),
+    
+    # parking percentage
+    parking_pct = (parking / boundary) * 100
+  )
+
+# Order factor by area for clearer visual hierarchy
+area$city_clean <- factor(area$city_clean, levels = area$city_clean[order(area$parking)])
+
+plot_area <- ggplot(area, aes(x = parking/ 1e6, y = city_clean)) +
+  geom_bar(stat = "identity", fill = "steelblue",alpha=0.7) +
+  labs( x = "Parking Area (km²)",
+    y = "City Names") + theme_bw()+
+  theme(
+    panel.grid = element_blank(),
+    text=element_text(family="serif"),
+    axis.line = element_line(colour = "black",size=0.1),
+    panel.border = element_blank(),
+    axis.ticks=element_line(color = "black", linewidth =0.1, size=0.1),
+    plot.title = element_text(face = "bold"),
+    axis.text = element_text(colour="black", size=7, face="plain"),
+    axis.title = element_text(colour="black", size=10, face="plain"))
+
+#ggsave("../figure/fig_sum_s1.", plot = plot_area, width = 7, height = 10, dpi = 400)
+tiff(paste0("../figure/Fig_sum_s1.tif"),width=12,height=20, units = "cm", res = 300, compression = "lzw")
+plot(plot_area)
+dev.off()
+
+
+
+
+area$city_clean <- factor(area$city_clean, levels = area$city_clean[order(area$parking_pct)])
+
+plot_pct <- ggplot(area, aes(x = parking_pct, y = city_clean)) +
+  geom_bar(stat = "identity", fill = "steelblue",alpha=0.7) +
+  labs(
+    x = "Parking Percentage (%)",
+    y = "City Names") + theme_bw()+
+  theme(
+    panel.grid = element_blank(),
+    text=element_text(family="serif"),
+    axis.line = element_line(colour = "black",size=0.1),
+    panel.border = element_blank(),
+    axis.ticks=element_line(color = "black", linewidth =0.1, size=0.1),
+    plot.title = element_text(face = "bold"),
+    axis.text = element_text(colour="black", size=7, face="plain"),
+    axis.title = element_text(colour="black", size=10, face="plain"))
+
+#ggsave("../figure/fig_sum_s2.png", plot = plot_pct, width = 7, height = 10, dpi = 400)
+tiff(paste0("../figure/Fig_sum_s2.tif"),width=12,height=20, units = "cm", res = 300, compression = "lzw")
+plot(plot_pct)
+dev.off()
+}
 
 #################################################
 ###### latitude change
@@ -92,7 +176,7 @@ rm(list = ls())
                        axis.title=element_blank(),
                        axis.text=element_text(colour="black", size=8, face="plain"),
                        axis.ticks = element_line(color = "black", linewidth =0.5),
-                       legend.position = c(0.9,0.20),
+                       legend.position = c(0.91,0.20),
                        legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                        legend.text = element_text(colour="black", size=8, face="plain"),
                        legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = 3),hjust = 0.5),
@@ -136,10 +220,10 @@ rm(list = ls())
       geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.25,size=0.3,position=position_dodge(.9))+
       ylab("ISA (%)")+ xlab("")+ labs(fill="")+
       scale_fill_manual(values=c("gray","orangered4","forestgreen"),
-                        label=c("Parking","Others","Green"))+
-      scale_x_discrete(label=c("Parking","Others","Green"))+
+                        label=c("Parking","Others","Open"))+
+      scale_x_discrete(label=c("Parking","Others","Open"))+
       theme_bw()+theme(text=element_text(family="serif"),
-                       axis.line = element_line(colour = "black",size=0.1),
+                       axis.line = element_line(colour = "black",size=0.2),
                        panel.border = element_blank(),
                        panel.background = element_rect(fill='transparent'),
                        plot.background = element_rect(fill='transparent', color=NA),
@@ -171,4 +255,63 @@ plot_sum=ggplot() +
   theme_void()
 tiff(paste0("../figure/Fig_sum_1.tif"),width=14,height=12, units = "cm", res = 300, compression = "lzw")
 plot(plot_sum)
+dev.off()
+
+# Vector PDF for publication
+pdf( file = "../figure/Fig_sum_1.pdf",
+     width = 14/2.54,
+     height = 12 /2.54,
+     onefile = FALSE,
+     paper = "special",
+     colormodel = "srgb",
+     useDingbats = FALSE)
+plot(plot_sum)
+dev.off()
+
+#evi,tcc spaital map
+p=list()
+p[[1]] = ggplot()+
+  geom_point(data=input1,aes(x=lon, y=lat, fill=EVI_open),pch=21,size=2)+
+  geom_sf(data=us_states,color = "black", fill = "wheat1",linewidth=0.1, alpha=0.1)+
+  scale_fill_distiller(type = "div", palette = "RdYlBu",direction = -1,na.value=NA,
+                       limits = c(0, 0.5),breaks = seq(0, 0.5, by = 0.25))+ 
+  labs(fill="EVI")+ ylab("")+ xlab("")+ 
+  theme_bw()+theme(text=element_text(family="serif"),
+                   panel.grid = element_blank(),
+                   axis.title=element_blank(),
+                   axis.text=element_text(colour="black", size=8, face="plain"),
+                   axis.ticks = element_line(color = "black", linewidth =0.5),
+                   legend.position = c(0.9,0.20),
+                   legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
+                   legend.text = element_text(colour="black", size=8, face="plain"),
+                   legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = 3),hjust = 0.5,vjust = 2),
+                   legend.key.size = unit(0.3, "cm"),
+                   legend.key.width = unit(0.2, "cm"),
+                   plot.margin = unit(c(0,0,0,0), "cm"),
+                   plot.title = element_text(face="plain",size=10,hjust = 0.5,vjust=0))
+
+p[[2]] = ggplot()+
+  geom_point(data=input1,aes(x=lon, y=lat, fill=TCC_open),pch=21,size=2)+
+  geom_sf(data=us_states,color = "black", fill = "wheat1",linewidth=0.1, alpha=0.1)+
+  scale_fill_distiller(type = "div", palette = "RdYlBu",direction = -1,na.value=NA,
+                       limits = c(0, 61),breaks = seq(0, 61, by = 20))+ 
+  labs(fill="TCC (%)")+ ylab("")+ xlab("")+ 
+  theme_bw()+theme(text=element_text(family="serif"),
+                   panel.grid = element_blank(),
+                   axis.title=element_blank(),
+                   axis.text=element_text(colour="black", size=8, face="plain"),
+                   axis.ticks = element_line(color = "black", linewidth =0.5),
+                   legend.position = c(0.9,0.20),
+                   legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
+                   legend.text = element_text(colour="black", size=8, face="plain"),
+                   legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = 3),hjust = 0.5,vjust = 2),
+                   legend.key.size = unit(0.3, "cm"),
+                   legend.key.width = unit(0.2, "cm"),
+                   plot.margin = unit(c(0,0,0,0), "cm"),
+                   plot.title = element_text(face="plain",size=10,hjust = 0.5,vjust=0))
+
+library(cowplot)
+fig <- plot_grid( p[[1]], p[[2]], ncol = 1,nrow=2, align = "hv" )
+tiff(paste0("../figure/fig_sum_s5.tif"),width=12,height=14, units = "cm", res = 300, compression = "lzw")
+print(fig)
 dev.off()
