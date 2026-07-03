@@ -9,7 +9,7 @@ library(stars)
 rm(list = ls())
 
 ##############readme################################
-##plot figure s3-4 for four cities with largest parking areas ratio 
+##plot figure s8, s9 for four cities with largest parking areas ratio 
 ###################################################
 
 
@@ -139,10 +139,11 @@ for (id in 1:4) {
 {
 ####input####
 {
-  input0=rbind(read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_1_2024.csv")),
-               read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_2_2024.csv")),
-               read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_3_2024.csv")),
-               read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_4_2024.csv")))
+input0=rbind(read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_1_2024.csv")),
+              read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_2_2024.csv")),
+              read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_3_2024.csv")),
+              read.csv(paste0("../input/parking_project_gee/Parking_Lot_parking_mean_4_2024.csv")))
+
   input0 = input0[-which(input0$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
   input0[,4:8]=input0[,4:8]-273.15
   ID=c(84,6,47,22)  ##four cities
@@ -164,8 +165,8 @@ for (id in 1:4) {
                                           y=!!sym(paste0("LST_",seasons1[ii],"_parking"))))+
         geom_point(size=1,shape = 16)+
         geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
-        ylab(expression(LST[Parking~lots]~'('*degree*C*')'))+
-        xlab(expression(ISA[Parking~lots]~'(%)'))+
+        ylab(expression(LST[ParkingLot]~'('*degree*C*')'))+
+        xlab(expression(ISA[ParkingLot]~'(%)'))+
         geom_text(label=paste0(slope),aes(x= -Inf,y = Inf), hjust = -0.08,vjust =1.2,
                   colour = "black",fontface = "plain",size=3,family="serif")+
         geom_text(label=paste0(pvalue1),aes(x= -Inf,y = Inf), hjust = -0.15,vjust =2.6,
@@ -208,13 +209,13 @@ for (id in 1:4) {
     annotate("text", x =65, y =187, label = "Summer",size=4,family="serif")+
     annotate("text", x =102, y =187, label = "Fall",size=4,family="serif")+
     annotate("text", x =135, y =187, label = "Winter",size=4,family="serif")+
-    annotate("text", x =2, y =165, label = paste0(citys[ID[1]]),angle=90,size=4,family="serif")+
-    annotate("text", x =2, y =120, label = paste0(citys[ID[2]]),angle=90,size=4,family="serif")+
-    annotate("text", x =2, y =75, label = paste0(citys[ID[3]]),angle=90,size=4,family="serif")+
-    annotate("text", x =2, y =30, label = paste0(citys[ID[4]]),angle=90,size=4,family="serif")+
+    annotate("text", x =2, y =165, label = paste0(cityss[1]),angle=90,size=4,family="serif")+
+    annotate("text", x =2, y =120, label = paste0(cityss[2]),angle=90,size=4,family="serif")+
+    annotate("text", x =2, y =75, label = paste0(cityss[3]),angle=90,size=4,family="serif")+
+    annotate("text", x =2, y =30, label = paste0(cityss[4]),angle=90,size=4,family="serif")+
     theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
     theme_void()
-  tiff(paste0("../figure/Fig_sum_s4.tif"),width=15,height=19, units = "cm", res = 300, compression = "lzw")
+  tiff(paste0("../figure/Fig_sum_s9.tif"),width=15,height=19, units = "cm", res = 300, compression = "lzw")
   plot(plot_sum)
   dev.off()
 }  
@@ -277,6 +278,6 @@ plot_sum=ggplot() +
   annotate("text", x =350, y =263.5, label = paste0(cityss[4]),size=4,family="serif")+
   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
   theme_void()
-tiff(paste0("../figure/Fig_sum_s3.tif"),width=20,height=13.3, units = "cm", res = 300, compression = "lzw")
+tiff(paste0("../figure/Fig_sum_s8.tif"),width=20,height=13.3, units = "cm", res = 300, compression = "lzw")
 plot(plot_sum)
 dev.off()

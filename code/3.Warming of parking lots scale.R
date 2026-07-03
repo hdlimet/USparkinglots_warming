@@ -4,7 +4,7 @@ library(sf)
 rm(list = ls())
 
 ##############readme################################
-##plot figure 4, s5, s6
+##plot figure 4, s4, s10, s11
 ###################################################
 
 
@@ -86,6 +86,7 @@ for (ii in 1:nrow(input_city0)) {
   names(slope_sum)=paste0("slope_",seasons)
   names(pvalue_sum)=paste0("pvalue_",seasons)
 }
+slope_sum[which(isa_iqr<5),]=NA
 
 #################################################
 ####plotting of LST-ISA slope###
@@ -95,9 +96,10 @@ for (ii in 1:nrow(input_city0)) {
   library(reshape2)
   slope_sum1=melt(slope_sum)
   names(slope_sum1)=c("season","slope_isa")
-  plot_box_slope_isa=ggplot(data=slope_sum1,aes(x=season,y=slope_isa,fill=season))+ 
-    stat_boxplot(geom = "errorbar", width = 0.15,size=0.1)+  
-    geom_boxplot(fatten = NULL,outlier.size = 0,outlier.shape = 16,width=0.5, size=0.1, alpha=0.6)+
+  
+  plot_box_slope_isa = ggplot(data=slope_sum1,aes(x=season,y=slope_isa,fill=season))+ 
+    stat_boxplot(geom = "errorbar", width = 0.5,size=0.3)+  
+    geom_boxplot(fatten = NULL,outlier.size = 0,outlier.shape = 16,width=0.7, size=0.1, alpha=0.6)+
     stat_summary(fun.min = match.fun(mean), fun = match.fun(mean), fun.max = match.fun(mean), geom="errorbar", 
                  width=0.5,size=0.5, linetype="dashed",position=position_dodge(width=.75))+
     scale_fill_manual(values=c("#5e4fa2","#abdda4","#9e0142","#fdae61","#3288bd"),label=seasons)+
@@ -116,10 +118,12 @@ for (ii in 1:nrow(input_city0)) {
   {
   input01=data.frame(citys=boundary$city,slope_sum,lon=center[,1],lat=center[,2],lat1=center1[,2])
   slope_lat <- ggplot(input01, aes(x = lat1, y =slope_annual)) +
-    geom_point(size=0.5) + labs(y=expression(Delta~LST*'/'*Delta~ISA~'('*degree*C*'/%)'),
+    geom_point(size=0.5,color="#5e4fa2",alpha=0.5) + labs(y=expression(Delta~LST*'/'*Delta~ISA~'('*degree*C*'/%)'),
                                 x=expression(Latitude~'('*degree*')'))+
-    geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+    geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
     theme_bw()+theme(text=element_text(family="serif"),
+                     axis.line = element_line(colour = "black",size=0.2),
+                     panel.border = element_blank(),
                      panel.grid = element_blank(),
                      plot.background = element_rect(fill='transparent', color=NA),
                      plot.margin = unit(c(0,0,-0.2,-0.1), "cm"),
@@ -127,8 +131,8 @@ for (ii in 1:nrow(input_city0)) {
                      axis.ticks.length=unit(.05, "cm"),
                      axis.text.y = element_text(face="plain",size=6,color="black",hjust = 10),
                      axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
-                     axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 6),
-                     axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -3),
+                     axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 5),
+                     axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
                      plot.title = element_blank())+  coord_flip()
     
   plot_map_isa_slope=list()
@@ -136,9 +140,9 @@ for (ii in 1:nrow(input_city0)) {
   
   for (ii in 1:5) {
     isa_slope_lat[[ii]] <- ggplot(input01, aes(x = lat1, y =!!sym(paste0("slope_",seasons[ii])))) +
-      geom_point(size=0.5) + labs(y=expression(Delta~LST*'/'*Delta~ISA~'('*degree*C*'/%)'),
+      geom_point(size=0.5,color="#5e4fa2",alpha=0.5) + labs(y=expression(Delta~LST*'/'*Delta~ISA~'('*degree*C*'/%)'),
                                   x=expression(Latitude~'('*degree*')'))+
-      geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+      geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
       theme_bw()+theme(text=element_text(family="serif"),
                        panel.grid = element_blank(),
                        plot.background = element_rect(fill='transparent', color=NA),
@@ -148,8 +152,9 @@ for (ii in 1:nrow(input_city0)) {
                        axis.text.y = element_text(face="plain",size=6,color="black"),
                        axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
                        axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 5),
-                       axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
+                       axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -1),
                        plot.title = element_blank())+  coord_flip()
+    
     plot_map_isa_slope [[ii]] = ggplot()+
       geom_point(data=input01,aes(x=lon, y=lat, fill=!!sym(paste0("slope_",seasons[ii]))),pch=21,size=2)+
       geom_sf(data=us_states,color = "black", fill = "wheat1",size=0.1, alpha=0.1)+
@@ -165,11 +170,11 @@ for (ii in 1:nrow(input_city0)) {
                        legend.position = c(0.925,0.20),
                        legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                        legend.text = element_text(colour="black", size=8, face="plain"),
-                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.5)),
+                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.5),vjust = 2),
                        legend.key.size = unit(0.2, "cm"),
                        legend.key.width = unit(0.15, "cm"),
                        plot.margin = unit(c(0,0,0,0), "cm"),
-                       plot.title = element_text(face="plain",size=8.3,hjust = 0.01,vjust=-9))+
+                       plot.title = element_text(face="plain",size=8.3,hjust = 0.5,vjust=-9))+
       {if (ii==1) theme(axis.text=element_text(colour="black", size=8, face="plain"),
                         axis.ticks = element_line(color = "black", linewidth =0.5))}+
       {if (ii==1) coord_sf(crs = st_crs(us_states),expand=TRUE,
@@ -185,7 +190,7 @@ for (ii in 1:nrow(input_city0)) {
     annotation_custom(ggplotGrob(plot_map_isa_slope[[5]]), xmin = 80, xmax = 160, ymin = 0, ymax = 50) +
     theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
     theme_void()
-  tiff(paste0("../figure/Fig_sum_s5.tif"),width=16,height=10, units = "cm", res = 300, compression = "lzw")
+  tiff(paste0("../figure/Fig_sum_s10.tif"),width=16,height=10, units = "cm", res = 300, compression = "lzw")
   plot(plot_sum_map)
   dev.off()
   }
@@ -203,16 +208,17 @@ for (ii in 1:nrow(input_city0)) {
     regression = lm(input_sel$diff~input_sel$open)
     slope = paste0("Slope=",sprintf("%.4f",coef(regression)[2]))
     pvalue0= summary(regression)$coefficients[2,4]
+    
     if (pvalue0<0.01) {pvalue1="P<0.01"} else if (pvalue0>0.01 & pvalue0<0.05) {pvalue1="P<0.05"} else {pvalue1=paste0("P=",sprintf("%.2f",pvalue0))}
     pvalue= pvalue1
     plot_scatter_slope[[ii]] = ggplot(data=input_sel,aes(x=open,y=diff,fill=isa))+
-      geom_point(size=1.5,pch = 21)+
+      geom_point(size=1.5,pch = 21,stroke = 0.1)+
       geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
       scale_fill_distiller(type = "div", palette = "RdYlBu",direction = -1,na.value=NA,
                             breaks = seq(70,90,by=10))+
       scale_y_continuous(limits = c(-0.05,0.195),breaks = c(0,0.1,0.2))+
       ylab(expression(Delta*'LST/'*Delta*ISA~'('*degree*C*'/%'*')'))+
-      xlab(expression(LST[Green~spaces]~'('*degree*C*')'))+
+      xlab(expression(LST[OpenSpace]~'('*degree*C*')'))+
       labs(fill="ISA (%)")+
       geom_text(label=paste0(seasonsss[ii]),aes(x= -Inf,y = Inf), hjust = -0.08,vjust =1.3,
                 colour = "black",fontface = "plain",size=3.5,family="serif")+
@@ -231,13 +237,13 @@ for (ii in 1:nrow(input_city0)) {
       {if (ii==5) theme(legend.position = c(1.15,1.2),
                         legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                         legend.text = element_text(colour="black", size=9, face="plain"),
-                        legend.title= element_text(colour="black", size=9, face="plain", margin = margin(b = 0),hjust = 0.5),
+                        legend.title= element_text(colour="black", size=9, face="plain", margin = margin(b = 0),hjust = 0.5,vjust = 2),
                         legend.key.size = unit(0.5, "cm"),
                         legend.key.width = unit(0.25, "cm"))}+
-      {if (ii==1) theme(legend.position = c(0.92,0.63),
+      {if (ii==1) theme(legend.position = c(0.91,0.63),
                         legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                         legend.text = element_text(colour="black", size=8, face="plain"),
-                        legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = 0),hjust = 0.5),
+                        legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = 0),hjust = 0.5,vjust = 2),
                         legend.key.size = unit(0.2, "cm"),
                         legend.key.width = unit(0.15, "cm"))}
   }
@@ -249,7 +255,7 @@ for (ii in 1:nrow(input_city0)) {
     annotation_custom(ggplotGrob(plot_scatter_slope[[5]]), xmin = 50, xmax = 100, ymin = 0, ymax = 50) +
     theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
     theme_void()
-  tiff(paste0("../figure/Fig_sum_s6.tif"),width=16.5,height=15, units = "cm", res = 300, compression = "lzw")
+  tiff(paste0("../figure/Fig_sum_s11.tif"),width=16.5,height=15, units = "cm", res = 300, compression = "lzw")
   plot(plot_sum)
   dev.off()
   }
@@ -271,5 +277,108 @@ for (ii in 1:nrow(input_city0)) {
   tiff(paste0("../figure/Fig_sum_4.tif"),width=15,height=16, units = "cm", res = 300, compression = "lzw")
   plot(plot_sum_map)
   dev.off()
+  pdf( file = "../figure/Fig_sum_4.pdf",
+       width = 15/2.54,
+       height = 16 /2.54,
+       onefile = FALSE,
+       paper = "special",
+       colormodel = "srgb",
+       useDingbats = FALSE)
+  plot(plot_sum_map)
+  dev.off()
   }
+}
+
+###################################
+#900m large parking vs all parking
+{
+  library(dplyr)
+  input0=read.csv("../input/parking_project_gee_v2/Parking_Lot_parking_mean.csv")
+  input0 = input0[-which(input0$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
+  df_long <- 
+    input0 %>%
+    mutate(lot_type = "All parking lots") %>%
+    bind_rows(
+      input0 %>%
+        filter(area > 900) %>%
+        mutate(lot_type = "Large parking lots (area > 900m2)")) %>%
+    pivot_longer(
+      cols = c(LST_annual_parking, LST_spring_parking,
+               LST_summer_parking, LST_fall_parking,
+               LST_winter_parking),
+      names_to = "season",
+      values_to = "LST")
+  
+  # Clean season labels
+  df_long <- df_long %>%
+    mutate(
+      season = gsub("LST_|_parking", "", season),
+      season = factor(
+        season,
+        levels = c("annual", "spring", "summer", "fall", "winter"),
+        labels = c("Annual", "Spring", "Summer", "Fall", "Winter") ))
+  
+  # 2. City-level mean LST for each season and lot type
+  city_means <- df_long %>% group_by(city, lot_type, season) %>%
+    summarise(city_mean_LST = mean(LST, na.rm = TRUE), .groups = "drop")
+  
+  # 3. Across-city mean and SD of city means
+  summary_df <- city_means %>%
+    group_by(lot_type, season) %>%
+    summarise(
+      mean_LST = mean(city_mean_LST, na.rm = TRUE),
+      sd_LST   = sd(city_mean_LST, na.rm = TRUE),
+      n_city   = n(),.groups = "drop")
+  
+  plot_large_parking <- ggplot(summary_df, aes(x = season, y = mean_LST, fill = lot_type)) +
+    geom_col(position = position_dodge(width = 0.7), width = 0.7) +
+    geom_errorbar(
+      aes(ymin = mean_LST - sd_LST/10,
+          ymax = mean_LST + sd_LST/10),
+      position = position_dodge(width = 0.8),alpha=0.7,
+      width = 0.2) + labs(
+        x = NULL,fill = "",
+        y = "LST (°C)") +
+    theme_bw() +
+    scale_fill_manual(values= c("skyblue","orange"),labels = c(
+      "All parking lots",
+      expression("Large parking lots (area > 900 m"^2*")")))+
+    theme_bw()+theme(text=element_text(family="serif"),
+                     axis.title.y=element_text(colour="black", size=10, face="plain"),
+                     axis.title.x=element_blank(),
+                     axis.text=element_text(colour="black", size=10, face="plain"),
+                     panel.grid = element_blank(),
+                     legend.position = c(0.82,0.92),
+                     legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
+                     legend.text = element_text(colour="black", size=8, face="plain"),
+                     legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = -0.1),hjust = 0.3),
+                     legend.key.size = unit(0.4, "cm"),
+                     legend.key.width = unit(0.4, "cm"),
+                     plot.title = element_text(face="plain",size=10,hjust = 0,vjust=0))
+  tiff(paste0("../figure/fig_sum_s4.tif"),width=15,height=10, units = "cm", res = 300, compression = "lzw")
+  plot_large_parking
+  dev.off()
+  
+  ttest_results <- city_means %>%
+    tidyr::pivot_wider(
+      names_from = lot_type,
+      values_from = city_mean_LST
+    ) %>%
+    group_by(season) %>%
+    summarise(
+      n_city = n(),
+      t_test = list(
+        t.test(`Large parking lots (area > 900m2)`,
+               `All parking lots`,
+               paired = TRUE)
+      ),
+      p_value = t_test[[1]]$p.value,
+      mean_diff = mean(`Large parking lots (area > 900m2)` - `All parking lots`, na.rm = TRUE),
+      df        = t_test[[1]]$parameter,      # degrees of freedom
+      t_value   = t_test[[1]]$statistic,      # optional: APA reporting needs this
+      .groups = "drop"
+    ) %>%
+    select(season, n_city, mean_diff,  t_value, df, p_value)
+  
+  ttest_results
 }

@@ -5,7 +5,7 @@ library(sf)
 rm(list = ls())
 
 ##############readme################################
-##plot figure 2, 3, 5, s1, s2, s7, extended data 1-3
+##plot figure 2, 3, 5, s3, s6, s7, s12, extended data 1-3
 ###################################################
 
 
@@ -30,9 +30,10 @@ ratio=area$parking/area$boundary*100
 {
 ###Parking_Lot_city_mean_2024 represent multiple-year mean
 input=read.csv("../input/parking_project_gee/Parking_Lot_city_mean_2024_buffer_2.csv")
+input[,2:16]=input[,2:16]-273.15
+#input=read.csv("../input/parking_project_gee_v2/Parking_Lot_city_mean_2024_buffer_2.csv")
 input = input[-which(input$city %in% c("anchorage-ak","honolulu-hi","san-juan-pr")),]
 citys=input[,1]
-input[,2:16]=input[,2:16]-273.15
 input_diff= data.frame(input$LST_annual_parking-input$LST_annual_open,
                        input$LST_annual_parking-input$LST_annual_urban,
                        input$LST_annual_urban-input$LST_annual_open,
@@ -110,8 +111,8 @@ names(con_sum)=c(paste0("con_",seasons))
   
   plot_bar_uhi = ggplot(data=uhi_sum1, aes(x=as.factor(season), y=mean,fill=as.factor(season))) +
     geom_bar(stat="identity",position=position_dodge())+
-    geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.25,size=0.3,position=position_dodge(.9))+
-    ylab(expression(UHI~'('*degree*C*')'))+ xlab("")+ labs(fill="")+
+    geom_errorbar(aes(ymin = mean - sd/sqrt(100), ymax = mean + sd/sqrt(100)), width = 0.25,size=0.3,position=position_dodge(.9))+
+    ylab(expression(SUHI~'('*degree*C*')'))+ xlab("")+ labs(fill="")+
     scale_x_discrete(labels = c("Annual","Spring","Summer","Fall","Winter"))+
     scale_fill_manual(values=alpha(c("#5e4fa2","#abdda4","#9e0142","#fdae61","#3288bd"),.5),
                       label=c("Annual","Spring","Summer","Fall","Winter"))+
@@ -125,8 +126,8 @@ names(con_sum)=c(paste0("con_",seasons))
   
   plot_bar_con = ggplot(data=con_sum1, aes(x=as.factor(season), y=mean,fill=as.factor(season))) +
     geom_bar(stat="identity",position=position_dodge())+
-    geom_errorbar(aes(ymin = mean - 0.2*sd, ymax = mean + 0.2*sd), width = 0.5,size=0.3,position=position_dodge(.9))+
-    ylab("Contribution to UHI (%)")+ xlab("")+ labs(fill="")+
+    geom_errorbar(aes(ymin = mean - sd/sqrt(100), ymax = mean + sd/sqrt(100)), width = 0.5,size=0.3,position=position_dodge(.9))+
+    ylab("Contribution to SUHI (%)")+ xlab("")+ labs(fill="")+
     scale_x_discrete(labels = c("Annual","Spring","Summer","Fall","Winter"))+
     coord_cartesian(ylim = c(19, 26.2)) + 
     scale_y_continuous(breaks = seq(20, 26,by=2))+
@@ -150,17 +151,17 @@ names(con_sum)=c(paste0("con_",seasons))
     plot_map_uhi [[ii]] = ggplot()+
       geom_point(data=input0,aes(x=lon, y=lat, fill=!!sym(paste0("uhi_",season))),pch=21,size=2)+
       geom_sf(data=us_states,color = "black", fill = "wheat1",size=0.1, alpha=0.1)+
-      labs(fill=expression(UHI~'('*degree*C*')'))+
+      labs(fill=expression(SUHI~'('*degree*C*')'))+
       ylab("")+ xlab("")+ 
       theme_bw()+theme(text=element_text(family="serif"),
                        panel.grid = element_blank(),
                        axis.title=element_blank(),
                        axis.text=element_blank(),
                        axis.ticks = element_blank(),
-                       legend.position = c(0.925,0.22),
+                       legend.position = c(0.92,0.22),
                        legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                        legend.text = element_text(colour="black", size=8, face="plain"),
-                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5),
+                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5,vjust = 2),
                        legend.key.size = unit(0.2, "cm"),
                        legend.key.width = unit(0.2, "cm"),
                        plot.margin = unit(c(0,0,0,0), "cm"),
@@ -185,7 +186,7 @@ names(con_sum)=c(paste0("con_",seasons))
                        legend.position = c(0.925,0.22),
                        legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                        legend.text = element_text(colour="black", size=8, face="plain"),
-                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5),
+                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5,vjust = 2),
                        legend.key.size = unit(0.2, "cm"),
                        legend.key.width = unit(0.2, "cm"),
                        plot.margin = unit(c(0,0,0,0), "cm"),
@@ -213,7 +214,7 @@ names(con_sum)=c(paste0("con_",seasons))
       annotate("text", x =3, y =75, label = "Fall",angle=90,colour = "black",size=4,family="serif")+
       annotate("text", x =3, y =125, label = "Summer",angle=90,colour = "black",size=4,family="serif")+
       annotate("text", x =3, y =175, label = "Spring",angle=90,colour = "black",size=4,family="serif")+
-      annotate("text", x =42.5, y =202.5, label = "UHI",colour = "black",size=4,family="serif")+
+      annotate("text", x =42.5, y =202.5, label = "SUHI",colour = "black",size=4,family="serif")+
       annotate("text", x =122.5, y =202.5, label = "Contribution",colour = "black",size=4,family="serif")+
       theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
       theme_void()
@@ -290,7 +291,7 @@ plot_cool_sensitivity=ggplot()+
 
 plot_cool_isa_uhi_single_y= ggplot(cool, aes(x = isa,y = mean_uhi_delta, color = factor(season))) +
   geom_point(size = 2) + 
-  scale_y_continuous(limits=c(-0.7,0),name = expression(Delta~UHI~'('*degree*C*')'))+
+  scale_y_continuous(limits=c(-0.7,0),name = expression(Delta~SUHI~'('*degree*C*')'))+
   scale_x_reverse(breaks=seq(20,60,by=5))+
   scale_color_manual(values=alpha(c("#5e4fa2","#abdda4","#9e0142","#fdae61","#3288bd"),.5),
                      label=c("Annual","Spring","Summer","Fall","Winter"))+
@@ -335,14 +336,14 @@ for (ii in 1:5) {
   plot_map_uhi_delta_isa[[ii]] = ggplot()+
     geom_point(data=input0,aes(x=lon, y=lat, fill=!!sym(paste0("uhi_delta_isa_",season))),pch=21,size=2)+
     geom_sf(data=us_states,color = "black", fill = "wheat1",size=0.1, alpha=0.1)+
-    labs(fill=expression(Delta~UHI~'('*degree*C*')'))+
+    labs(fill=expression(Delta~SUHI~'('*degree*C*')'))+
     ylab("")+ xlab("")+
     theme_bw()+theme(text=element_text(family="serif"),
                      panel.grid = element_blank(),
                      axis.title=element_blank(),
                      axis.text=element_blank(),
                      axis.ticks = element_blank(),
-                     legend.position = c(0.915,0.22),
+                     legend.position = c(0.91,0.22),
                      legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                      legend.text = element_text(colour="black", size=8, face="plain"),
                      legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.7),
@@ -367,7 +368,7 @@ for (ii in 1:5) {
                      axis.title=element_blank(),
                      axis.text=element_blank(),
                      axis.ticks = element_blank(),
-                     legend.position = c(0.915,0.22),
+                     legend.position = c(0.91,0.22),
                      legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                      legend.text = element_text(colour="black", size=8, face="plain"),
                      legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.7),
@@ -384,20 +385,22 @@ for (ii in 1:5) {
                       axis.ticks = element_line(color = "black", linewidth =0.5))}
 }
 cooling_isa_lat <- ggplot(input0, aes(x = lat1, y =uhi_delta_isa_annual)) +
-  geom_point(size=0.5) + labs(y=expression(Delta~UHI~'('*degree*C*')'),
+  geom_point(size=0.5,color="#5e4fa2",alpha=0.5) + labs(y=expression(Delta~SUHI~'('*degree*C*')'),
                               x=expression(Latitude~'('*degree*')'))+
   scale_y_continuous(limits=c(MIN[1],MAX[1]),breaks = c(-1.5,0))+
-  geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+  geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
   theme_bw()+theme(text=element_text(family="serif"),
+                   axis.line = element_line(colour = "black",size=0.2),
+                   panel.border = element_blank(),
                    panel.grid = element_blank(),
                    plot.background = element_rect(fill='transparent', color=NA),
                    plot.margin = unit(c(0,0,-0.2,-0.1), "cm"),
                    axis.ticks=element_line(color = "black", linewidth =0.1, size=0.1),
                    axis.ticks.length=unit(.05, "cm"),
                    axis.text.y = element_text(face="plain",size=6,color="black",hjust = 10),
-                   axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
+                   axis.text.x = element_text(face="plain",size=6,color="black",vjust = 3),
                    axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 6),
-                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -3),
+                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
                    plot.title = element_blank())+  coord_flip()
 }
 #### parking areas reduction scenario###
@@ -414,7 +417,7 @@ green0=seq(0.1,0.5,by=0.05)
   names(cool_mean)=c("scenario","season","uhi_delta_open","uhi_delta_open_std")
   plot_cool_area_uhi_single_y <- ggplot(cool_mean,aes(x=scenario*100,y=uhi_delta_open,color=as.factor(season)))+
     geom_point(size = 2) + 
-    scale_y_continuous(limits=c(-0.7,0),name = expression(Delta~UHI~'('*degree*C*')'))+
+    scale_y_continuous(limits=c(-0.7,0),name = expression(Delta~SUHI~'('*degree*C*')'))+
     scale_x_reverse()+
     scale_color_manual(values=alpha(c("#5e4fa2","#abdda4","#9e0142","#fdae61","#3288bd"),.5),
                        label=c("Annual","Spring","Summer","Fall","Winter"))+
@@ -447,21 +450,24 @@ uhi_delta_area_sum0=foreach (ii=1:5,.combine=cbind) %do% {
 uhi_delta_area_sum=data.frame(uhi_delta_area_sum0)
 names(uhi_delta_area_sum)=paste0("uhi_delta_area_",seasons)
 input0=data.frame(citys,uhi_delta_area_sum,lon=center[,1],lat=center[,2],lat1=center1[,2])
+
 cooling_area_lat <- ggplot(input0, aes(x = lat1, y =uhi_delta_area_annual))+
-  geom_point(size=0.5) + labs(y=expression(Delta~UHI~'('*degree*C*')'),
+  geom_point(size=0.5,color="#5e4fa2",alpha=0.5 ) + labs(y=expression(Delta~SUHI~'('*degree*C*')'),
                               x=expression(Latitude~'('*degree*')'))+
   scale_y_continuous(limits=c(MIN[1],MAX[1]),breaks = c(-1.5,0))+
-  geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+  geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
   theme_bw()+theme(text=element_text(family="serif"),
+                   axis.line = element_line(colour = "black",size=0.2),
+                   panel.border = element_blank(),
                    panel.grid = element_blank(),
                    plot.background = element_rect(fill='transparent', color=NA),
                    plot.margin = unit(c(0,0,-0.2,-0.1), "cm"),
                    axis.ticks=element_line(color = "black", linewidth =0.1, size=0.1),
                    axis.ticks.length=unit(.05, "cm"),
                    axis.text.y = element_text(face="plain",size=6,color="black",hjust = 10),
-                   axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
+                   axis.text.x = element_text(face="plain",size=6,color="black",vjust = 3),
                    axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 6),
-                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -3),
+                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
                    plot.title = element_blank())+  coord_flip()
 
 plot_map_uhi_delta_area=list()
@@ -470,14 +476,14 @@ for (ii in 1:5) {
   plot_map_uhi_delta_area[[ii]] = ggplot()+
     geom_point(data=input0,aes(x=lon, y=lat, fill=!!sym(paste0("uhi_delta_area_",season))),pch=21,size=2)+
     geom_sf(data=us_states,color = "black", fill = "wheat1",size=0.1, alpha=0.1)+
-    labs(fill=expression(Delta~UHI~'('*degree*C*')'))+
+    labs(fill=expression(Delta~SUHI~'('*degree*C*')'))+
     ylab("")+ xlab("")+
     theme_bw()+theme(text=element_text(family="serif"),
                      panel.grid = element_blank(),
                      axis.title=element_blank(),
                      axis.text=element_blank(),
                      axis.ticks = element_blank(),
-                     legend.position = c(0.915,0.22),
+                     legend.position = c(0.91,0.22),
                      legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                      legend.text = element_text(colour="black", size=8, face="plain"),
                      legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.7),
@@ -544,10 +550,10 @@ for (ii in 1:5) {
   
  plot_bar_lst = ggplot(data=input_lst_season, aes(x=as.factor(season), y=mean,fill=as.factor(position))) +
   geom_bar(stat="identity",position=position_dodge())+
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.25,size=0.3,position=position_dodge(.9))+
+  geom_errorbar(aes(ymin = mean - sd/sqrt(100), ymax = mean + sd/sqrt(100)), width = 0.25,size=0.3,position=position_dodge(.9))+
   ylab(expression(LST~'('*degree*C*')'))+ xlab("")+ labs(fill="")+
   scale_fill_manual(values=c("gray","orangered4","forestgreen"),
-                    label=c("Parking lots","Other built-up","Green spaces"))+
+                    label=c("Parking lot","Other built-up","Open space"))+
   scale_x_discrete(labels = c("Annual","Spring","Summer","Fall","Winter"))+
   theme_bw()+theme(text=element_text(family="serif"),
                    axis.title.y=element_text(colour="black", size=10, face="plain"),
@@ -556,7 +562,7 @@ for (ii in 1:5) {
                    panel.grid = element_blank(),
                    legend.position = c(0.85,0.9),
                    legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
-                   legend.text = element_text(colour="black", size=8, face="plain"),
+                   legend.text = element_text(colour="black", size=8, face="plain",margin = margin(b = 1)),
                    legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = -0.1),hjust = 0.3),
                    legend.key.size = unit(0.4, "cm"),
                    legend.key.width = unit(0.4, "cm"),
@@ -564,10 +570,10 @@ for (ii in 1:5) {
 
 plot_bar_lst_diff = ggplot(data=input_lst_diff_season, aes(x=as.factor(season), y=mean,fill=as.factor(position))) +
   geom_bar(stat="identity",position=position_dodge(),width=0.55)+
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd),  width = 0.2,size=0.3,position=position_dodge(.5))+
+  geom_errorbar(aes(ymin = mean - sd/sqrt(100), ymax = mean + sd/sqrt(100)),  width = 0.2,size=0.3,position=position_dodge(.5))+
   ylab(expression(Delta~LST~'('*degree*C*')'))+ xlab("")+ labs(fill="")+
   scale_fill_manual(values=c("gray","orangered4"),
-                    label=c("Parking lots","Other built-up"))+
+                    label=c("Parking lot","Other built-up"))+
   scale_x_discrete(labels = c("Annual","Spring","Summer","Fall","Winter"))+
   theme_bw()+theme(text=element_text(family="serif"),
                    axis.title.y=element_text(colour="black", size=10, face="plain"),
@@ -576,7 +582,7 @@ plot_bar_lst_diff = ggplot(data=input_lst_diff_season, aes(x=as.factor(season), 
                    panel.grid = element_blank(),
                    legend.position = c(0.85,0.92),
                    legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
-                   legend.text = element_text(colour="black", size=8, face="plain"),
+                   legend.text = element_text(colour="black", size=8, face="plain",margin = margin(b = 1)),
                    legend.title= element_text(colour="black", size=8, face="plain",margin = margin(b = -0.1),hjust = 0.3),
                    legend.key.size = unit(0.4, "cm"),
                    legend.key.width = unit(0.4, "cm"),
@@ -611,8 +617,8 @@ plot_scatter_season=ggplot(data= input_park_season,aes(x=open,y=park,color=as.fa
                      label=c("Spring","Summer","Fall","Winter"))+
   scale_y_continuous(limits = c(-10,60),breaks = seq(0,60,by=20))+
   scale_x_continuous(limits = c(-10,60),breaks = seq(0,60,by=20))+
-  ylab(expression(LST[Parking~lots]~'('*degree*C*')'))+
-  xlab(expression(LST[Green~spaces]~'('*degree*C*')'))+labs(color="")+
+  ylab(expression(LST[ParkingLot]~'('*degree*C*')'))+
+  xlab(expression(LST[OpenSpace]~'('*degree*C*')'))+labs(color="")+
   theme_bw()+theme(text=element_text(family="serif"),
                    panel.grid = element_blank(),
                    axis.text = element_text(face="plain",size=10,color="black"),
@@ -626,13 +632,13 @@ plot_scatter_season=ggplot(data= input_park_season,aes(x=open,y=park,color=as.fa
                    plot.title = element_text(face="plain",size=10,hjust = 0,vjust=0))
 plot_scatter_annual=ggplot(data= input_park_annual,aes(x=open,y=park,color=as.factor(season)))+
   geom_point(size=1)+
-  geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA)+
+  geom_smooth(method="lm",formula=y~x,size=1,fill=NA)+
   geom_abline (slope=1, linetype = "dashed", color="black")+
   scale_color_manual(values=alpha(c("#5e4fa2"),.5),label=c("Annual"))+
   scale_y_continuous(limits = c(15,45),breaks = seq(10,50,by=10))+
   scale_x_continuous(limits = c(15,45),breaks = seq(10,50,by=10))+
-  ylab(expression(LST[Parking~lots]~'('*degree*C*')'))+
-  xlab(expression(LST[Green~spaces]~'('*degree*C*')'))+labs(color="")+
+  ylab(expression(LST[ParkingLot]~'('*degree*C*')'))+
+  xlab(expression(LST[OpenSpace]~'('*degree*C*')'))+labs(color="")+
   theme_bw()+theme(text=element_text(family="serif"),
                    panel.grid = element_blank(),
                    axis.text = element_text(face="plain",size=10,color="black"),
@@ -662,7 +668,7 @@ plot_scatter_sum=ggplot() +
   annotate("text", x =155, y =79.5, label = paste0(pvalue[5]),size=3,family="serif")+
   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
   theme_void()
-tiff(paste0("../figure/Fig_sum_s1.tif"),width=18,height=9, units = "cm", res = 300, compression = "lzw")
+tiff(paste0("../figure/Fig_sum_s6.tif"),width=18,height=9, units = "cm", res = 300, compression = "lzw")
 plot(plot_scatter_sum)
 dev.off()
 }
@@ -690,7 +696,7 @@ dev.off()
     scale_color_manual(values=alpha(c("#abdda4","#9e0142","#fdae61","#3288bd"),.5),
                        label=c("Spring","Summer","Fall","Winter"))+
     ylab(expression(Delta~LST~'('*degree*C*')'))+
-    xlab(expression(LST[Green~spaces]~'('*degree*C*')'))+labs(color="")+
+    xlab(expression(LST[OpenSpace]~'('*degree*C*')'))+labs(color="")+
     theme_bw()+theme(text=element_text(family="serif"),
                      panel.grid = element_blank(),
                      axis.text = element_text(face="plain",size=10,color="black"),
@@ -704,10 +710,10 @@ dev.off()
                      plot.title = element_text(face="plain",size=10,hjust = 0,vjust=0))
   plot_scatter_annual=ggplot(data= input_diff_annual,aes(x=open,y=diff,color=as.factor(season)))+
     geom_point(size=1.5)+
-    geom_smooth(method="lm",size=0.5,fill=NA)+
+    geom_smooth(method="lm",size=1,fill=NA)+
     scale_color_manual(values=alpha(c("#5e4fa2"),.5),label=c("Annual"))+
     ylab(expression(Delta~LST~'('*degree*C*')'))+
-    xlab(expression(LST[Green~spaces]~'('*degree*C*')'))+labs(color="")+
+    xlab(expression(LST[OpenSpace]~'('*degree*C*')'))+labs(color="")+
     theme_bw()+theme(text=element_text(family="serif"),
                      panel.grid = element_blank(),
                      axis.text = element_text(face="plain",size=10,color="black"),
@@ -727,8 +733,9 @@ dev.off()
 #########Parking lots#####
 {
 input0=data.frame(citys,input,lon=center[,1],lat=center[,2],ratio_con=input$con_annual/input$ratio)
-MAX=round(apply(input0[,c(3:17,36:50,53:57)],2,max,na.rm=TRUE),1)+0.1
-MIN=round(apply(input0[,c(3:17,36:50,53:57)],2,min,na.rm=TRUE),1)-0.1
+MAX=round(apply(input0[,grepl("LST", names(input0))],2,max,na.rm=TRUE),1)+0.1
+MIN=round(apply(input0[,grepl("LST", names(input0))],2,min,na.rm=TRUE),1)-0.1
+
 plot_map_parking=list()
 plot_map_diff_parking=list()
 for (ii in 1:5) {
@@ -743,10 +750,10 @@ for (ii in 1:5) {
                      axis.title=element_blank(),
                      axis.text=element_blank(),
                      axis.ticks = element_blank(),
-                     legend.position = c(0.92,0.22),
+                     legend.position = c(0.915,0.22),
                      legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                      legend.text = element_text(colour="black", size=8, face="plain"),
-                     legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5),
+                     legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5,vjust = 2),
                      legend.key.size = unit(0.2, "cm"),
                      legend.key.width = unit(0.2, "cm"),
                      plot.margin = unit(c(0,0,0,0), "cm"),
@@ -772,7 +779,7 @@ for (ii in 1:5) {
                      legend.position = c(0.915,0.22),
                      legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                      legend.text = element_text(colour="black", size=8, face="plain"),
-                     legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.7),
+                     legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.7,vjust = 2),
                      legend.key.size = unit(0.2, "cm"),
                      legend.key.width = unit(0.2, "cm"),
                      plot.margin = unit(c(0,0,0,0), "cm"),
@@ -802,10 +809,10 @@ for (ii in 1:5) {
                        axis.title=element_blank(),
                        axis.text=element_blank(),
                        axis.ticks = element_blank(),
-                       legend.position = c(0.92,0.22),
+                       legend.position = c(0.915,0.22),
                        legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                        legend.text = element_text(colour="black", size=8, face="plain"),
-                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5),
+                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5,vjust = 2),
                        legend.key.size = unit(0.2, "cm"),
                        legend.key.width = unit(0.2, "cm"),
                        plot.margin = unit(c(0,0,0,0), "cm"),
@@ -815,6 +822,7 @@ for (ii in 1:5) {
       {if (ii==3) scale_fill_distiller(limits=c(MIN[8],MAX[8]),type = "div", palette = "RdYlBu",direction = -1,na.value=NA)}+ 
       {if (ii==4) scale_fill_distiller(limits=c(MIN[11],MAX[11]),type = "div", palette = "RdYlBu",direction = -1,na.value=NA)}+ 
       {if (ii==5) scale_fill_distiller(limits=c(MIN[14],MAX[14]),type = "div", palette = "RdYlBu",direction = -1,na.value=NA)}
+    
     plot_map_diff_urban[[ii]] = ggplot()+
       geom_point(data=input0,aes(x=lon, y=lat, fill=!!sym(paste0("LST_diff_",season,"_urban"))),pch=21,size=2)+
       geom_sf(data=us_states,color = "black", fill = "wheat1",size=0.1, alpha=0.1)+
@@ -829,7 +837,7 @@ for (ii in 1:5) {
                        legend.position = c(0.915,0.22),
                        legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                        legend.text = element_text(colour="black", size=8, face="plain"),
-                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.5),hjust = 0.7),
+                       legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.5),hjust = 0.7,vjust = 2),
                        legend.key.size = unit(0.2, "cm"),
                        legend.key.width = unit(0.2, "cm"),
                        plot.margin = unit(c(0,0,0,0), "cm"),
@@ -856,10 +864,10 @@ for (ii in 1:5) {
                      axis.title=element_blank(),
                      axis.text=element_blank(),
                      axis.ticks = element_blank(),
-                     legend.position = c(0.92,0.22),
+                     legend.position = c(0.915,0.22),
                      legend.background = element_rect(fill="transparent", size=2, linetype="blank", colour ="darkblue"),
                      legend.text = element_text(colour="black", size=8, face="plain"),
-                     legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5),
+                     legend.title= element_text(colour="black", size=8, face="plain", margin = margin(b = -0.3),hjust = 0.5,vjust = 2),
                      legend.key.size = unit(0.2, "cm"),
                      legend.key.width = unit(0.2, "cm"),
                      plot.margin = unit(c(0,0,0,0), "cm"),
@@ -879,10 +887,12 @@ matrix=data.frame(lat=input$lat1,
                   uhi=input$uhi_annual,
                   con=input$con_annual)
 lst_lat <- ggplot(matrix, aes(x = lat, y =lst)) +
-  geom_point(size=0.5) + labs(y=expression(Delta~LST~'('*degree*C*')'),
+  geom_point(size=0.5,color="#5e4fa2",alpha=0.5) + labs(y=expression(Delta~LST~'('*degree*C*')'),
                               x=expression(Latitude~'('*degree*')'))+
-  geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+  geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
   theme_bw()+theme(text=element_text(family="serif"),
+                   axis.line = element_line(colour = "black",size=0.2),
+                   panel.border = element_blank(),
                    panel.grid = element_blank(),
                    plot.background = element_rect(fill='transparent', color=NA),
                    plot.margin = unit(c(0,0,-0.2,-0.1), "cm"),
@@ -890,14 +900,17 @@ lst_lat <- ggplot(matrix, aes(x = lat, y =lst)) +
                    axis.ticks.length=unit(.05, "cm"),
                    axis.text.y = element_text(face="plain",size=6,color="black",hjust = 10),
                    axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
-                   axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 6),
-                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -3),
+                   axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 5),
+                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
                    plot.title = element_blank())+  coord_flip()
+
 uhi_lat <- ggplot(matrix, aes(x = lat, y =uhi)) +
-  geom_point(size=0.5) + labs(y=expression(Delta~UHI~'('*degree*C*')'),
+  geom_point(size=0.5,color="#5e4fa2",alpha=0.5) + labs(y=expression(Delta~SUHI~'('*degree*C*')'),
                               x=expression(Latitude~'('*degree*')'))+
-  geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+  geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
   theme_bw()+theme(text=element_text(family="serif"),
+                   axis.line = element_line(colour = "black",size=0.2),
+                   panel.border = element_blank(),
                    panel.grid = element_blank(),
                    plot.background = element_rect(fill='transparent', color=NA),
                    plot.margin = unit(c(0,0,-0.2,-0.1), "cm"),
@@ -905,14 +918,17 @@ uhi_lat <- ggplot(matrix, aes(x = lat, y =uhi)) +
                    axis.ticks.length=unit(.05, "cm"),
                    axis.text.y = element_text(face="plain",size=6,color="black",hjust = 10),
                    axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
-                   axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 6),
-                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -3),
+                   axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 5),
+                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
                    plot.title = element_blank())+  coord_flip()
+
 con_lat <- ggplot(matrix, aes(x = lat, y =con)) +
-  geom_point(size=0.5) + labs(y=expression(CP~'(%)'),
+  geom_point(size=0.5,color="#5e4fa2",alpha=0.5) + labs(y=expression(CP~'(%)'),
                               x=expression(Latitude~'('*degree*')'))+
-  geom_smooth(method="lm",formula=y~x,size=1,fill=NA,color="red")+
+  geom_smooth(method="lm",formula=y~x,size=0.5,fill=NA,color="black")+
   theme_bw()+theme(text=element_text(family="serif"),
+                   axis.line = element_line(colour = "black",size=0.2),
+                   panel.border = element_blank(),
                    panel.grid = element_blank(),
                    plot.background = element_rect(fill='transparent', color=NA),
                    plot.margin = unit(c(0,0,-0.2,-0.1), "cm"),
@@ -920,8 +936,8 @@ con_lat <- ggplot(matrix, aes(x = lat, y =con)) +
                    axis.ticks.length=unit(.05, "cm"),
                    axis.text.y = element_text(face="plain",size=6,color="black",hjust = 10),
                    axis.text.x = element_text(face="plain",size=6,color="black",vjust = 2),
-                   axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 6),
-                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -3),
+                   axis.title.x =  element_text(face="plain",size=6,color="black",vjust = 5),
+                   axis.title.y =  element_text(face="plain",size=6,color="black",vjust = -2),
                    plot.title = element_blank())+  coord_flip()
 }
 
@@ -934,7 +950,7 @@ plot_sum_sum=ggplot() +
   annotation_custom(ggplotGrob(plot_bar_lst_diff), xmin = 120, xmax = 240, ymin = 80, ymax = 160) +  
   annotation_custom(ggplotGrob(plot_bar_uhi), xmin = 1, xmax = 120, ymin = 0, ymax = 80) +  
   annotation_custom(ggplotGrob(plot_bar_con), xmin = 120, xmax = 240, ymin = 0, ymax = 80) +
-  annotate("text", x =19, y =155, label = "(a)",colour = "black",size=4,family="serif",fontface ="bold")+
+  annotate("text", x =19.5, y =155, label = "(a)",colour = "black",size=4,family="serif",fontface ="bold")+
   annotate("text", x =139, y =155, label = "(b)",colour = "black",size=4,family="serif",fontface ="bold")+
   annotate("text", x =19, y =75, label = "(c)",colour = "black",size=4,family="serif",fontface ="bold")+
   annotate("text", x =139, y =75, label = "(d)",colour = "black",size=4,family="serif",fontface ="bold")+
@@ -943,7 +959,15 @@ plot_sum_sum=ggplot() +
 tiff(paste0("../figure/Fig_sum_2.tif"),width=18,height=12, units = "cm", res = 300, compression = "lzw")
 plot(plot_sum_sum)
 dev.off()
-
+pdf( file = "../figure/Fig_sum_2.pdf",
+     width = 18/2.54,
+     height = 12 /2.54,
+     onefile = FALSE,
+     paper = "special",
+     colormodel = "srgb",
+     useDingbats = FALSE)
+plot(plot_sum_sum)
+dev.off()
 plot_scatter_sum=ggplot() +
   coord_equal(xlim = c(0, 180), ylim = c(0, 120), expand = FALSE) +
   annotation_custom(ggplotGrob(plot_map_diff_parking[[1]]), xmin = 2, xmax = 88, ymin = 60, ymax = 120) +  
@@ -952,7 +976,7 @@ plot_scatter_sum=ggplot() +
   annotation_custom(ggplotGrob(plot_map_uhi[[1]]), xmin = 2, xmax = 88, ymin = 0, ymax = 60) +  
   annotation_custom(ggplotGrob(uhi_lat), xmin = 10, xmax = 25, ymin = 7.5, ymax = 24) +  
   annotation_custom(ggplotGrob(plot_map_con[[1]]), xmin = 92, xmax = 178, ymin = 0, ymax = 60) +
-  annotation_custom(ggplotGrob(con_lat), xmin = 100, xmax = 115, ymin = 7.5, ymax = 24) +  
+  annotation_custom(ggplotGrob(con_lat), xmin = 100, xmax = 115, ymin = 7.4, ymax = 24) +  
   annotate("text", x =14, y =115, label = "(a)",size=4,family="serif",fontface ="bold")+
   annotate("text", x =104, y =115, label = "(b)",size=4,family="serif",fontface ="bold")+
   annotate("text", x =14, y =55, label = "(c)",size=4,family="serif",fontface ="bold")+
@@ -964,7 +988,15 @@ plot_scatter_sum=ggplot() +
 tiff(paste0("../figure/Fig_sum_3.tif"),width=18,height=12, units = "cm", res = 300, compression = "lzw")
 plot(plot_scatter_sum)
 dev.off()
-
+pdf( file = "../figure/Fig_sum_3.pdf",
+     width = 18/2.54,
+     height = 12 /2.54,
+     onefile = FALSE,
+     paper = "special",
+     colormodel = "srgb",
+     useDingbats = FALSE)
+plot(plot_scatter_sum)
+dev.off()
 plot_sum_sum=ggplot() +
   coord_equal(xlim = c(0, 240), ylim = c(0, 140), expand = FALSE) +
   annotation_custom(ggplotGrob(plot_cool_isa_uhi_single_y), xmin = 0, xmax = 120, ymin = 70, ymax = 140) +  
@@ -982,7 +1014,15 @@ plot_sum_sum=ggplot() +
 tiff(paste0("../figure/Fig_sum_5.tif"),width=20,height=12.2, units = "cm", res = 300, compression = "lzw")
 plot(plot_sum_sum)
 dev.off()
-
+pdf( file = "../figure/Fig_sum_5.pdf",
+     width = 20/2.54,
+     height = 12.2 /2.54,
+     onefile = FALSE,
+     paper = "special",
+     colormodel = "srgb",
+     useDingbats = FALSE)
+plot(plot_sum_sum)
+dev.off()
 plot_scatter_sum=ggplot() +
   coord_equal(xlim = c(0, 80), ylim = c(0, 70), expand = FALSE) +
   annotation_custom(ggplotGrob(plot_scatter_season), xmin = 0, xmax = 80, ymin = 0, ymax = 70) +  
@@ -996,7 +1036,7 @@ plot_scatter_sum=ggplot() +
   annotate("text", x =43, y =53, label = paste0(pvalue_diff[5]),size=3.2,family="serif")+
   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
   theme_void()
-tiff(paste0("../figure/Fig_sum_s2.tif"),width=10,height=8.75, units = "cm", res = 300, compression = "lzw")
+tiff(paste0("../figure/Fig_sum_s7.tif"),width=10,height=8.75, units = "cm", res = 300, compression = "lzw")
 plot(plot_scatter_sum)
 dev.off()
 
@@ -1008,7 +1048,7 @@ plot_sum_sum=ggplot() +
   annotate("text", x =72, y =66, label = "(b)",colour = "black",size=4,family="serif",fontface ="bold")+
   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
   theme_void()
-tiff(paste0("../figure/Fig_sum_s7.tif"),width=16,height=7, units = "cm", res = 300, compression = "lzw")
+tiff(paste0("../figure/Fig_sum_s12.tif"),width=16,height=7, units = "cm", res = 300, compression = "lzw")
 plot(plot_sum_sum)
 dev.off()
 
@@ -1030,9 +1070,9 @@ plot_sum_map=ggplot() +
   annotate("text", x =3, y =75, label = "Fall",angle=90,colour = "black",size=4,family="serif")+
   annotate("text", x =3, y =125, label = "Summer",angle=90,colour = "black",size=4,family="serif")+
   annotate("text", x =3, y =175, label = "Spring",angle=90,colour = "black",size=4,family="serif")+
-  annotate("text", x =42.5, y =202.5, label = expression(LST[Parking~lots]),colour = "black",size=4,family="serif")+
-  annotate("text", x =122.5, y =202.5, label = expression(LST[Other~built-up]),colour = "black",size=4,family="serif")+
-  annotate("text", x =202.5, y =202.5, label = expression(LST[Green~spaces]),colour = "black",size=4,family="serif")+
+  annotate("text", x =42.5, y =202.5, label = expression(LST[ParkingLot]),colour = "black",size=4,family="serif")+
+  annotate("text", x =122.5, y =202.5, label = expression(LST[OtherBuilt-up]),colour = "black",size=4,family="serif")+
+  annotate("text", x =202.5, y =202.5, label = expression(LST[OpenSpace]),colour = "black",size=4,family="serif")+
   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
   theme_void()
 tiff(paste0("../figure/Fig_sum_extend1.tif"),width=21.5,height=18, units = "cm", res = 300, compression = "lzw")
@@ -1054,11 +1094,30 @@ plot_sum_map=ggplot() +
   annotate("text", x =3, y =75, label = "Fall",angle=90,colour = "black",size=4,family="serif")+
   annotate("text", x =3, y =125, label = "Summer",angle=90,colour = "black",size=4,family="serif")+
   annotate("text", x =3, y =175, label = "Spring",angle=90,colour = "black",size=4,family="serif")+
-  annotate("text", x =42.5, y =202.5, label = expression(Delta~LST[Parking~lots]),colour = "black",size=4,family="serif")+
-  annotate("text", x =122.5, y =202.5, label = expression(Delta~LST[Other~built-up]),colour = "black",size=4,family="serif")+
+  annotate("text", x =42.5, y =202.5, label = expression(Delta~LST[ParkingLot]),colour = "black",size=4,family="serif")+
+  annotate("text", x =122.5, y =202.5, label = expression(Delta~LST[OtherBuilt-up]),colour = "black",size=4,family="serif")+
   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
   theme_void()
 tiff(paste0("../figure/Fig_sum_extend2.tif"),width=16,height=20, units = "cm", res = 300, compression = "lzw")
 plot(plot_sum_map)
 dev.off()
+
+#########################
+##change the input to 10m data: line 34 "parking_project_gee_v2"
+# plot_sum_sum = ggplot() +
+#   coord_equal(xlim = c(0, 240), ylim = c(0, 160), expand = FALSE) +
+#   annotation_custom(ggplotGrob(plot_bar_lst), xmin = 0, xmax = 120, ymin = 80, ymax = 160) +
+#   annotation_custom(ggplotGrob(plot_bar_lst_diff), xmin = 120, xmax = 240, ymin = 80, ymax = 160) +
+#   annotation_custom(ggplotGrob(plot_map_diff_parking[[1]]), xmin = 5, xmax = 118, ymin = 5, ymax = 80) +
+#   annotation_custom(ggplotGrob(lst_lat), xmin = 15, xmax = 35, ymin = 13, ymax = 35) +
+#   annotation_custom(ggplotGrob(plot_scatter_annual), xmin = 120, xmax = 240, ymin = -1, ymax = 80) +
+#   annotate("text", x =20, y =155, label = "(a)",colour = "black",size=4,family="serif",fontface ="bold")+
+#   annotate("text", x =140, y =155, label = "(b)",colour = "black",size=4,family="serif",fontface ="bold")+
+#   annotate("text", x =20, y =75, label = "(c)",colour = "black",size=4,family="serif",fontface ="bold")+
+#   annotate("text", x =140, y =75, label = "(d)",colour = "black",size=4,family="serif",fontface ="bold")+
+#   theme(text=element_text(family="serif"), plot.margin = unit(c(0,0,0,0), "cm"))+
+#   theme_void()
+# tiff(paste0("../figure/Fig_sum_s3.tif"),width=20,height=12, units = "cm", res = 300, compression = "lzw")
+# plot(plot_sum_sum)
+# dev.off()
 }
